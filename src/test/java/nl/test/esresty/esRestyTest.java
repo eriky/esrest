@@ -71,7 +71,7 @@ public class esRestyTest {
 	public void testIndex() throws JSONException {
 		testCreateIndex();
 		assertTrue(r.index(testIndexName, testType, "1", testDocument));
-		assertTrue(r.index(testIndexName + "rr", testType, testDocument));
+		assertTrue(r.index(testIndexName, testType, testDocument));
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class esRestyTest {
 		
 		r.setBulkSize(20);
 		for (int i=0; i < 20; i++) {
-			assertTrue(r.bulkIndex(testIndexName+"rr", testType, Integer.toString(i), testDocument));
+			assertTrue(r.bulkIndex(testIndexName, testType, Integer.toString(i), testDocument));
 		}
 		assertEquals(r.getCurrentBulkSize(), 0);
 	}
