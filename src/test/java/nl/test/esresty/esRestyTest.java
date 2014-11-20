@@ -14,14 +14,13 @@ import com.eriky.esResty;
 
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
-import us.monoid.web.Resty;
 
 public class esRestyTest {
 	esResty r;
 	String testIndexName = "esresty-unittest-index-safe-to-delete";
 	String testType = "test-type";
 	JSONObject testDocument;
-
+	
 	@Before
 	public void setUp() throws Exception {
 		r = new esResty("http://localhost:9200");
@@ -51,7 +50,9 @@ public class esRestyTest {
 
 	@Test
 	public void testIndexExists() throws JSONException {
-		assertFalse(r.indexExists("testeeeenotexistst112234"));
+	    testCreateIndex();
+	    assertFalse(r.indexExists("testeeeenotexistst112234"));
+		assertTrue(r.indexExists(testIndexName));
 	}
 
 	@Test

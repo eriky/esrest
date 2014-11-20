@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class esResty {
-	private Logger logger = LoggerFactory.getLogger(esResty.class);
+	private Logger log = LoggerFactory.getLogger(esResty.class);
 	private Resty r;
 	private String url;
 	private JSONObject lastResponse;
@@ -25,7 +25,6 @@ public class esResty {
 	public esResty(String elasticSearchUrl) {
 		r = new Resty();
 		url = elasticSearchUrl;
-
 	}
 
 	/**
@@ -55,6 +54,7 @@ public class esResty {
 		try {
 			lastResponse = r.json(url + '/' + indexName).toObject();
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 		return true;
@@ -72,6 +72,7 @@ public class esResty {
 			lastResponse = r.json(url + '/' + indexName, put(content("")))
 					.toObject();
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 		return true;
@@ -91,6 +92,7 @@ public class esResty {
 					.json(url + '/' + indexName, put(content(settings)))
 					.toObject();
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 		return true;
@@ -108,6 +110,7 @@ public class esResty {
 			lastResponse = r.json(url + '/' + indexName, delete()).toObject();
 			return true;
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 	}
@@ -132,6 +135,7 @@ public class esResty {
 					.toObject();
 			return true;
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 	}
@@ -157,6 +161,7 @@ public class esResty {
 					.toObject();
 			return true;
 		} catch (IOException e) {
+		    log.error("Exception: " + e .getMessage());
 			return false;
 		}
 	}
@@ -229,14 +234,14 @@ public class esResty {
 	public boolean doBulkRequest() throws JSONException {
 		try {
 			String bulkRequest = bulkStringBuffer.toString();
-			logger.debug(bulkRequest);
+			log.debug(bulkRequest);
 			lastResponse = r.json(url + "/_bulk", put(content(bulkRequest)))
 					.toObject();
 			return true;
 		} catch (IOException e) {
-			logger.error("Exception: " + e .getMessage());
+			log.error("Exception: " + e .getMessage());
 			e.printStackTrace();
-			logger.error(lastResponse.toString(2));
+			log.error(lastResponse.toString(2));
 			return false;
 		}
 		
