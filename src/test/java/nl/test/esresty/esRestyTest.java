@@ -50,7 +50,7 @@ public class esRestyTest {
 
 	@Test
 	public void testIndexExists() throws JSONException {
-	    testCreateIndex();
+	    r.createIndex(testIndexName);
 	    assertFalse(r.indexExists("testeeeenotexistst112234"));
 		assertTrue(r.indexExists(testIndexName));
 	}
@@ -69,24 +69,34 @@ public class esRestyTest {
 	}
 
 	@Test
-	public void testIndex() throws JSONException {
-		testCreateIndex();
+	public void testIndexDocWithId() throws JSONException {
+	    r.createIndex(testIndexName);
 		assertTrue(r.index(testIndexName, testType, "1", testDocument));
-		assertTrue(r.index(testIndexName, testType, testDocument));
 	}
 
 	@Test
-	public void testDeleteIndex() throws JSONException {
+    public void testIndexDocWithoutId() throws JSONException {
+        r.createIndex(testIndexName);
+        assertTrue(r.index(testIndexName, testType, testDocument));
+    }
+	
+	@Test
+	public void testDeleteIndexThatExists() throws JSONException {
 		testCreateIndex();
 		assertTrue(r.deleteIndex(testIndexName));
-		assertFalse(r.deleteIndex("doesnotexistsforsureright-11234"));
 	}
+	
+	@Test
+    public void testDeleteIndexThatDoesNotExist() throws JSONException {
+        testCreateIndex();
+        assertFalse(r.deleteIndex("doesnotexistsforsureright-11234"));
+    }
 	
 	/*************************************************************************** 
 									BULK TESTS
     ****************************************************************************/
 	@Test
-	public void testBulkIndex() throws JSONException {
+	public void testValidBulkIndex() throws JSONException {
 		testCreateIndex();
 		
 		r.setBulkSize(20);
@@ -94,6 +104,6 @@ public class esRestyTest {
 			assertTrue(r.bulkIndex(testIndexName, testType, Integer.toString(i), testDocument));
 		}
 		assertEquals(r.getCurrentBulkSize(), 0);
+		assertEquals(r.getLastResponse().getBoolean("errors"), false);
 	}
-
 }
