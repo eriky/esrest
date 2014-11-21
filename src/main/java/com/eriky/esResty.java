@@ -54,7 +54,8 @@ public class esResty {
         try {
             lastResponse = r.json(url + '/' + indexName).toObject();
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+        	// Exception is OK, since it simply means the index does not exist
+            log.debug("Exception: " + e.getMessage());
             return false;
         }
         return true;
@@ -72,7 +73,7 @@ public class esResty {
             lastResponse = r.json(url + '/' + indexName, put(content("")))
                     .toObject();
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
         return true;
@@ -92,7 +93,7 @@ public class esResty {
                     .json(url + '/' + indexName, put(content(settings)))
                     .toObject();
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
         return true;
@@ -110,7 +111,7 @@ public class esResty {
             lastResponse = r.json(url + '/' + indexName, delete()).toObject();
             return true;
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
     }
@@ -133,7 +134,7 @@ public class esResty {
             lastResponse = r.json(completeUrl, put(content(mapping)))
                     .toObject();
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
         return true;
@@ -159,7 +160,7 @@ public class esResty {
                     .toObject();
             return true;
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
     }
@@ -185,7 +186,7 @@ public class esResty {
                     .toObject();
             return true;
         } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
+            log.warn("Exception: " + e.getMessage());
             return false;
         }
     }
