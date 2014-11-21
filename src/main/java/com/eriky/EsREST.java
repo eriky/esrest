@@ -13,6 +13,14 @@ import static us.monoid.web.Resty.form;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * <p>
+ * EsREST class.
+ * </p>
+ *
+ * @author erik
+ * @version $Id: $
+ */
 public class EsREST {
 	private Logger log = LoggerFactory.getLogger(EsREST.class);
 	private Resty r;
@@ -24,7 +32,7 @@ public class EsREST {
 
 	/**
 	 * Create a new esResty client.
-	 * 
+	 *
 	 * @param elasticSearchUrl
 	 *            the full url to the ElasticSearch server without trailing
 	 *            slash, e.g. http://localhost:9200
@@ -37,11 +45,12 @@ public class EsREST {
 	/**
 	 * Get the banner from the root url of ElasticSearch, containing the
 	 * tagline, status code and version information.
-	 * 
+	 *
 	 * @return A JSONObject with the response
-	 * 
-	 * @throws IOException
-	 * @throws JSONException
+	 * @throws java.io.IOException
+	 *             if any.
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public JSONObject getBanner() throws IOException, JSONException {
 		lastResponse = r.json(url).toObject();
@@ -52,10 +61,12 @@ public class EsREST {
 	 * Test if index exists by GETting the full url to the index. There is a
 	 * better way to do this: by only requesting the HEAD. HEAD requests are not
 	 * supported (yet) by Resty.
-	 * 
+	 *
 	 * @param indexName
+	 *            The index name
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean indexExists(String indexName) throws JSONException {
 		try {
@@ -70,10 +81,12 @@ public class EsREST {
 
 	/**
 	 * Create index.
-	 * 
+	 *
 	 * @param indexName
+	 *            The name of the to be created index
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean createIndex(String indexName) throws JSONException {
 		try {
@@ -88,10 +101,15 @@ public class EsREST {
 
 	/**
 	 * Create index.
-	 * 
+	 *
 	 * @param indexName
+	 *            The index name
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
+	 * @param settings
+	 *            a {@link us.monoid.json.JSONObject} object containing the
+	 *            index settings.
 	 */
 	public boolean createIndexWithSettings(String indexName, JSONObject settings)
 			throws JSONException {
@@ -108,10 +126,12 @@ public class EsREST {
 
 	/**
 	 * Delete index
-	 * 
+	 *
 	 * @param indexName
+	 *            The index name
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean deleteIndex(String indexName) throws JSONException {
 		try {
@@ -125,12 +145,16 @@ public class EsREST {
 
 	/**
 	 * Put mapping for index and type.
-	 * 
+	 *
 	 * @param indexName
+	 *            the index name
 	 * @param type
+	 *            the document type
 	 * @param mapping
+	 *            a {@link us.monoid.json.JSONObject} object containing the mapping.
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean putMapping(String indexName, String type, JSONObject mapping)
 			throws JSONException {
@@ -149,7 +173,7 @@ public class EsREST {
 
 	/**
 	 * Index the given document with the given id into given index and type.
-	 * 
+	 *
 	 * @param indexName
 	 *            the index name
 	 * @param type
@@ -157,9 +181,10 @@ public class EsREST {
 	 * @param id
 	 *            the id of the document
 	 * @param document
-	 *            the document as a JSONObject
+	 *            The document as a {@link us.monoid.json.JSONObject} object containing the mapping.
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean index(String indexName, String type, String id,
 			JSONObject document) throws JSONException {
@@ -179,7 +204,7 @@ public class EsREST {
 	/**
 	 * Index the given document into given index and type. An id will be
 	 * automatically created by ElasticSearch.
-	 * 
+	 *
 	 * @param indexName
 	 *            the index name
 	 * @param type
@@ -187,7 +212,8 @@ public class EsREST {
 	 * @param document
 	 *            the document as a JSONObject
 	 * @return true on success, false otherwise
-	 * @throws JSONException
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
 	 */
 	public boolean index(String indexName, String type, JSONObject document)
 			throws JSONException {
@@ -208,7 +234,7 @@ public class EsREST {
 	 * Get the last response from ElasticSearch as JSONObject. Note that if the
 	 * last request failed due to a network error, this will return the last
 	 * response before the network problem started.
-	 * 
+	 *
 	 * @return a JSONObject with the response to the last request that was made.
 	 */
 	public JSONObject getLastResponse() {
@@ -217,8 +243,9 @@ public class EsREST {
 
 	/**
 	 * Set the maximum size of the bulk queue.
-	 * 
+	 *
 	 * @param numberOfDocuments
+	 *            a int.
 	 */
 	public void setBulkSize(int numberOfDocuments) {
 		bulkSize = numberOfDocuments;
@@ -227,13 +254,30 @@ public class EsREST {
 	/**
 	 * Get the number of documents that are currently in the queue for the next
 	 * bulk request.
-	 * 
-	 * @return the number of queued documents 
+	 *
+	 * @return the number of queued documents
 	 */
 	public int getCurrentBulkSize() {
 		return currentBulkSize;
 	}
 
+	/**
+	 * <p>
+	 * bulkIndex
+	 * </p>
+	 *
+	 * @param indexName
+	 *            a {@link java.lang.String} object.
+	 * @param type
+	 *            a {@link java.lang.String} object.
+	 * @param id
+	 *            a {@link java.lang.String} object.
+	 * @param document
+	 *            a {@link us.monoid.json.JSONObject} object.
+	 * @return a boolean.
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
+	 */
 	public boolean bulkIndex(String indexName, String type, String id,
 			JSONObject document) throws JSONException {
 		addIndexActionToBulk(indexName, type, id, document);
@@ -269,6 +313,15 @@ public class EsREST {
 		currentBulkSize += 1;
 	}
 
+	/**
+	 * <p>
+	 * doBulkRequest
+	 * </p>
+	 *
+	 * @return a boolean.
+	 * @throws us.monoid.json.JSONException
+	 *             if any.
+	 */
 	public boolean doBulkRequest() throws JSONException {
 		try {
 			String bulkRequest = bulkStringBuffer.toString();
