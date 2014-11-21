@@ -13,8 +13,8 @@ import static us.monoid.web.Resty.form;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class esResty {
-	private Logger log = LoggerFactory.getLogger(esResty.class);
+public class EsREST {
+	private Logger log = LoggerFactory.getLogger(EsREST.class);
 	private Resty r;
 	private String url;
 	private JSONObject lastResponse;
@@ -29,7 +29,7 @@ public class esResty {
 	 *            the full url to the ElasticSearch server without trailing
 	 *            slash, e.g. http://localhost:9200
 	 */
-	public esResty(String elasticSearchUrl) {
+	public EsREST(String elasticSearchUrl) {
 		r = new Resty();
 		url = elasticSearchUrl;
 	}

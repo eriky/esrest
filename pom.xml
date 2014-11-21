@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.eriky</groupId>
-	<artifactId>esresty</artifactId>
+	<artifactId>esrest</artifactId>
 	<version>0.1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>esresty</name>
+	<name>EsREST</name>
 	<description>Simple Java client to talk to the ElasticSearch REST API</description>
-	<url>http://github.com/eriky/esresty</url>
+	<url>http://github.com/eriky/esrest</url>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -19,9 +19,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git@github.com:eriky/esResty.git</connection>
-		<developerConnection>scm:git:git@github.com:eriky/esResty.git</developerConnection>
-		<url>git@github.com:eriky/esResty.git</url>
+		<connection>scm:git:git@github.com:eriky/esrest.git</connection>
+		<developerConnection>scm:git:git@github.com:eriky/esrest.git</developerConnection>
+		<url>git@github.com:eriky/esrest.git</url>
 	</scm>
 	<build>
 		<plugins>

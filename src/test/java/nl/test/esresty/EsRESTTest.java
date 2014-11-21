@@ -10,20 +10,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.eriky.esResty;
+import com.eriky.EsREST;
 
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
-public class esRestyTest {
-	esResty r;
+public class EsRESTTest {
+	EsREST r;
 	String testIndexName = "esresty-unittest-index-safe-to-delete";
 	String testType = "test-type";
 	JSONObject testDocument;
 	
 	@Before
 	public void setUp() throws Exception {
-		r = new esResty("http://localhost:9200");
+		r = new EsREST("http://localhost:9200");
 		testDocument = new JSONObject(
 				"{ \"name\": \"test\", \"age\": 40, \"post_date\" : \"2009-11-15T14:12:12\" }");
 	}
