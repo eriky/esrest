@@ -14,261 +14,274 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class esResty {
-    private Logger log = LoggerFactory.getLogger(esResty.class);
-    private Resty r;
-    private String url;
-    private JSONObject lastResponse;
-    private int bulkSize = 200;
-    private int currentBulkSize = 0;
-    private StringBuffer bulkStringBuffer = new StringBuffer();
+	private Logger log = LoggerFactory.getLogger(esResty.class);
+	private Resty r;
+	private String url;
+	private JSONObject lastResponse;
+	private int bulkSize = 200;
+	private int currentBulkSize = 0;
+	private StringBuffer bulkStringBuffer = new StringBuffer();
 
-    public esResty(String elasticSearchUrl) {
-        r = new Resty();
-        url = elasticSearchUrl;
-    }
+	/**
+	 * Create a new esResty client.
+	 * 
+	 * @param elasticSearchUrl
+	 *            the full url to the ElasticSearch server without trailing
+	 *            slash, e.g. http://localhost:9200
+	 */
+	public esResty(String elasticSearchUrl) {
+		r = new Resty();
+		url = elasticSearchUrl;
+	}
 
-    /**
-     * Get the banner from the root url of ElasticSearch, containing the
-     * tagline, status code and version information.
-     * 
-     * @return A JSONObject with the response
-     * 
-     * @throws IOException
-     * @throws JSONException
-     */
-    public JSONObject getBanner() throws IOException, JSONException {
-        lastResponse = r.json(url).toObject();
-        return lastResponse;
-    }
+	/**
+	 * Get the banner from the root url of ElasticSearch, containing the
+	 * tagline, status code and version information.
+	 * 
+	 * @return A JSONObject with the response
+	 * 
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	public JSONObject getBanner() throws IOException, JSONException {
+		lastResponse = r.json(url).toObject();
+		return lastResponse;
+	}
 
-    /**
-     * Test if index exists by GETting the full url to the index. There is a
-     * better way to do this: by only requesting the HEAD. HEAD requests are not
-     * supported (yet) by Resty.
-     * 
-     * @param indexName
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean indexExists(String indexName) throws JSONException {
-        try {
-            lastResponse = r.json(url + '/' + indexName).toObject();
-        } catch (IOException e) {
-        	// Exception is OK, since it simply means the index does not exist
-            log.debug("Exception: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * Test if index exists by GETting the full url to the index. There is a
+	 * better way to do this: by only requesting the HEAD. HEAD requests are not
+	 * supported (yet) by Resty.
+	 * 
+	 * @param indexName
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean indexExists(String indexName) throws JSONException {
+		try {
+			lastResponse = r.json(url + '/' + indexName).toObject();
+		} catch (IOException e) {
+			// Exception is OK, since it simply means the index does not exist
+			log.debug("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Create index.
-     * 
-     * @param indexName
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean createIndex(String indexName) throws JSONException {
-        try {
-            lastResponse = r.json(url + '/' + indexName, put(content("")))
-                    .toObject();
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * Create index.
+	 * 
+	 * @param indexName
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean createIndex(String indexName) throws JSONException {
+		try {
+			lastResponse = r.json(url + '/' + indexName, put(content("")))
+					.toObject();
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Create index.
-     * 
-     * @param indexName
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean createIndexWithSettings(String indexName, JSONObject settings)
-            throws JSONException {
-        try {
-            lastResponse = r
-                    .json(url + '/' + indexName, put(content(settings)))
-                    .toObject();
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
+	/**
+	 * Create index.
+	 * 
+	 * @param indexName
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean createIndexWithSettings(String indexName, JSONObject settings)
+			throws JSONException {
+		try {
+			lastResponse = r
+					.json(url + '/' + indexName, put(content(settings)))
+					.toObject();
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Delete index
-     * 
-     * @param indexName
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean deleteIndex(String indexName) throws JSONException {
-        try {
-            lastResponse = r.json(url + '/' + indexName, delete()).toObject();
-            return true;
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-    }
+	/**
+	 * Delete index
+	 * 
+	 * @param indexName
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean deleteIndex(String indexName) throws JSONException {
+		try {
+			lastResponse = r.json(url + '/' + indexName, delete()).toObject();
+			return true;
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+	}
 
-    /**
-     * Put mapping for index and type.
-     * 
-     * @param indexName
-     * @param type
-     * @param mapping
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean putMapping(String indexName, String type, JSONObject mapping)
-            throws JSONException {
+	/**
+	 * Put mapping for index and type.
+	 * 
+	 * @param indexName
+	 * @param type
+	 * @param mapping
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean putMapping(String indexName, String type, JSONObject mapping)
+			throws JSONException {
 
-        String completeUrl = url + '/' + indexName + "/_mapping" + '/' + type;
+		String completeUrl = url + '/' + indexName + "/_mapping" + '/' + type;
 
-        try {
-            lastResponse = r.json(completeUrl, put(content(mapping)))
-                    .toObject();
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-        return true;
-    }
+		try {
+			lastResponse = r.json(completeUrl, put(content(mapping)))
+					.toObject();
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Index the given document with the given id into given index and type.
-     * 
-     * @param indexName
-     * @param type
-     * @param id
-     * @param document
-     * @return true on success, false otherwise
-     * @throws JSONException
-     */
-    public boolean index(String indexName, String type, String id,
-            JSONObject document) throws JSONException {
+	/**
+	 * Index the given document with the given id into given index and type.
+	 * 
+	 * @param indexName
+	 *            the index name
+	 * @param type
+	 *            the document type
+	 * @param id
+	 *            the id of the document
+	 * @param document
+	 *            the document as a JSONObject
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean index(String indexName, String type, String id,
+			JSONObject document) throws JSONException {
 
-        String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
+		String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
 
-        try {
-            lastResponse = r.json(completeUrl, put(content(document)))
-                    .toObject();
-            return true;
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-    }
+		try {
+			lastResponse = r.json(completeUrl, put(content(document)))
+					.toObject();
+			return true;
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+	}
 
-    /**
-     * Index the given document into given index and type. An id will be
-     * automatically created by ElasticSearch.
-     * 
-     * @param indexName
-     * @param type
-     * @param id
-     * @param document
-     * @return
-     * @throws JSONException
-     */
-    public boolean index(String indexName, String type, JSONObject document)
-            throws JSONException {
+	/**
+	 * Index the given document into given index and type. An id will be
+	 * automatically created by ElasticSearch.
+	 * 
+	 * @param indexName
+	 *            the index name
+	 * @param type
+	 *            the document type
+	 * @param document
+	 *            the document as a JSONObject
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean index(String indexName, String type, JSONObject document)
+			throws JSONException {
 
-        String completeUrl = url + '/' + indexName + '/' + type + '/';
+		String completeUrl = url + '/' + indexName + '/' + type + '/';
 
-        try {
-            lastResponse = r.json(completeUrl, form(document.toString()))
-                    .toObject();
-            return true;
-        } catch (IOException e) {
-            log.warn("Exception: " + e.getMessage());
-            return false;
-        }
-    }
+		try {
+			lastResponse = r.json(completeUrl, form(document.toString()))
+					.toObject();
+			return true;
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+	}
 
-    /**
-     * Get the last response from ElasticSearch as JSONObject. Note that if the
-     * last request failed due to a network error, this will return the last
-     * response before the network problem started.
-     * 
-     * @return a JSONObject with the response to the last request that was made.
-     */
-    public JSONObject getLastResponse() {
-        return lastResponse;
-    }
+	/**
+	 * Get the last response from ElasticSearch as JSONObject. Note that if the
+	 * last request failed due to a network error, this will return the last
+	 * response before the network problem started.
+	 * 
+	 * @return a JSONObject with the response to the last request that was made.
+	 */
+	public JSONObject getLastResponse() {
+		return lastResponse;
+	}
 
-    /**
-     * Set the maximum size of the bulk queue.
-     * 
-     * @param numberOfDocuments
-     */
-    public void setBulkSize(int numberOfDocuments) {
-        bulkSize = numberOfDocuments;
-    }
+	/**
+	 * Set the maximum size of the bulk queue.
+	 * 
+	 * @param numberOfDocuments
+	 */
+	public void setBulkSize(int numberOfDocuments) {
+		bulkSize = numberOfDocuments;
+	}
 
-    /**
-     * Get the number of documents that are currently in the queue for the next
-     * bulk request.
-     * 
-     * @return
-     */
-    public int getCurrentBulkSize() {
-        return currentBulkSize;
-    }
+	/**
+	 * Get the number of documents that are currently in the queue for the next
+	 * bulk request.
+	 * 
+	 * @return the number of queued documents 
+	 */
+	public int getCurrentBulkSize() {
+		return currentBulkSize;
+	}
 
-    public boolean bulkIndex(String indexName, String type, String id,
-            JSONObject document) throws JSONException {
-        addIndexActionToBulk(indexName, type, id, document);
+	public boolean bulkIndex(String indexName, String type, String id,
+			JSONObject document) throws JSONException {
+		addIndexActionToBulk(indexName, type, id, document);
 
-        if (currentBulkSize == bulkSize) {
-            boolean success = doBulkRequest();
-            if (success) {
-                currentBulkSize = 0;
-                bulkStringBuffer.setLength(0);
-            }
-            return success;
-        } else {
-            return true;
-        }
-    }
+		if (currentBulkSize == bulkSize) {
+			boolean success = doBulkRequest();
+			if (success) {
+				currentBulkSize = 0;
+				bulkStringBuffer.setLength(0);
+			}
+			return success;
+		} else {
+			return true;
+		}
+	}
 
-    private void addIndexActionToBulk(String indexName, String type, String id,
-            JSONObject document) {
-        StringBuffer sb = new StringBuffer();
-        sb.append("{ \"index\" : { \"_index\" : \"");
-        sb.append(indexName);
-        sb.append("\", \"_type\" : \"");
-        sb.append(type);
-        sb.append("\", \"_id\" : \"");
-        sb.append(id);
-        sb.append("\" } }");
-        String action = sb.toString();
-        String documentJson = document.toString();
-        bulkStringBuffer.append(action);
-        bulkStringBuffer.append('\n');
-        bulkStringBuffer.append(documentJson);
-        bulkStringBuffer.append('\n');
-        currentBulkSize += 1;
-    }
+	private void addIndexActionToBulk(String indexName, String type, String id,
+			JSONObject document) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{ \"index\" : { \"_index\" : \"");
+		sb.append(indexName);
+		sb.append("\", \"_type\" : \"");
+		sb.append(type);
+		sb.append("\", \"_id\" : \"");
+		sb.append(id);
+		sb.append("\" } }");
+		String action = sb.toString();
+		String documentJson = document.toString();
+		bulkStringBuffer.append(action);
+		bulkStringBuffer.append('\n');
+		bulkStringBuffer.append(documentJson);
+		bulkStringBuffer.append('\n');
+		currentBulkSize += 1;
+	}
 
-    public boolean doBulkRequest() throws JSONException {
-        try {
-            String bulkRequest = bulkStringBuffer.toString();
-            log.debug(bulkRequest);
-            lastResponse = r.json(url + "/_bulk", put(content(bulkRequest)))
-                    .toObject();
-            return true;
-        } catch (IOException e) {
-            log.error("Exception: " + e.getMessage());
-            e.printStackTrace();
-            log.error(lastResponse.toString(2));
-            return false;
-        }
+	public boolean doBulkRequest() throws JSONException {
+		try {
+			String bulkRequest = bulkStringBuffer.toString();
+			log.debug(bulkRequest);
+			lastResponse = r.json(url + "/_bulk", put(content(bulkRequest)))
+					.toObject();
+			return true;
+		} catch (IOException e) {
+			log.error("Exception: " + e.getMessage());
+			e.printStackTrace();
+			log.error(lastResponse.toString(2));
+			return false;
+		}
 
-    }
+	}
 }
