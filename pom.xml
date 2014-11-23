@@ -2,14 +2,63 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>nl.test</groupId>
-	<artifactId>esresty</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>com.eriky</groupId>
+	<artifactId>esrest</artifactId>
+	<version>0.1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>esresty</name>
-	<url>http://maven.apache.org</url>
+	<name>EsREST</name>
+	<description>Simple Java client to talk to the ElasticSearch REST API</description>
+	<url>http://github.com/eriky/esrest</url>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
+	<scm>
+		<connection>scm:git:git@github.com:eriky/esrest.git</connection>
+		<developerConnection>scm:git:git@github.com:eriky/esrest.git</developerConnection>
+		<url>git@github.com:eriky/esrest.git</url>
+	</scm>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<show>public</show>
+					<charset>utf-8</charset>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
