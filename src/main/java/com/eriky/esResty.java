@@ -20,7 +20,7 @@ public class esResty {
     private JSONObject lastResponse;
     private int bulkSize = 200;
     private int currentBulkSize = 0;
-    private StringBuffer bulkStringBuffer = new StringBuffer();
+    private StringBuilder bulkStringBuffer = new StringBuilder();
 
     public esResty(String elasticSearchUrl) {
         r = new Resty();
