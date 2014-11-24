@@ -58,6 +58,41 @@ public class EsREST {
 	}
 
 	/**
+	 * Retrieve cluster wide health (from hostname:port/_cluster/health).
+	 * 
+	 * @return A JSONObject with the response
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	public JSONObject getHealth() throws IOException, JSONException {
+		String completeUrl = url + "/_cluster/health";
+		lastResponse = r.json(completeUrl).toObject();
+		return lastResponse;
+	}
+
+	/**
+	 * Will wait (until the timeout as provided) until the status of the cluster
+	 * changes to the one provided or better, i.e. green > yellow > red.
+	 * 
+	 * @param status
+	 *            One of green, yellow or red.
+	 * 
+	 * @param timeout
+	 *            How long to wait, in seconds.
+	 * @return true if status was reached, false if status is not reached
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	public boolean waitForClusterStatus(String status, int timeout)
+			throws IOException, JSONException {
+		String completeUrl = url + "/_cluster/health?wait_for_status=" + status
+				+ "&timeout=" + timeout;
+		lastResponse = r.json(completeUrl).toObject();
+		return !lastResponse.getBoolean("timed_out");
+
+	}
+
+	/**
 	 * Test if index exists by GETting the full url to the index. There is a
 	 * better way to do this: by only requesting the HEAD. HEAD requests are not
 	 * supported (yet) by Resty.
@@ -151,7 +186,8 @@ public class EsREST {
 	 * @param type
 	 *            the document type
 	 * @param mapping
-	 *            a {@link us.monoid.json.JSONObject} object containing the mapping.
+	 *            a {@link us.monoid.json.JSONObject} object containing the
+	 *            mapping.
 	 * @return true on success, false otherwise
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
@@ -181,7 +217,8 @@ public class EsREST {
 	 * @param id
 	 *            the id of the document
 	 * @param document
-	 *            The document as a {@link us.monoid.json.JSONObject} object containing the mapping.
+	 *            The document as a {@link us.monoid.json.JSONObject} object
+	 *            containing the mapping.
 	 * @return true on success, false otherwise
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
