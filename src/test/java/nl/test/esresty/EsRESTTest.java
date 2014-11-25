@@ -28,6 +28,7 @@ public class EsRESTTest {
 	EsREST r;
 	String testIndexName = "esresty-unittest-index-safe-to-delete";
 	String testType = "test-type";
+	String testAliasName = "esresty-unittest-index-safe-to-delete-alias";
 	JSONObject testDocument;
 
 	/**
@@ -112,6 +113,25 @@ public class EsRESTTest {
 	@Test
 	public void testWaitForStatus() throws IOException, JSONException {
 		boolean res = r.waitForClusterStatus("yellow", 2);
+		assertTrue(res);
+	}
+
+	@Test
+	public void testCreateAlias() throws JSONException {
+		r.createIndex(testIndexName);
+		boolean res = r.createAlias(testIndexName, testAliasName);
+		assertTrue(res);
+	}
+
+	@Test
+	public void testCreateFilterAlias() throws JSONException {
+		// We need an index and a document with the field "age" before being
+		// able to create a filtered alias on that field
+		r.createIndex(testIndexName);
+		r.index(testIndexName, testType, testDocument);
+		JSONObject filter = new JSONObject(
+				"{\"filter\" : { \"term\" : { \"age\" : 40 } } }");
+		boolean res = r.createFilterAlias(testIndexName, testAliasName, filter);
 		assertTrue(res);
 	}
 

@@ -208,6 +208,57 @@ public class EsREST {
 	}
 
 	/**
+	 * Create an index alias.
+	 * 
+	 * @param indexName
+	 *            the index name you want to add an alias to
+	 * @param alias
+	 *            the alias name
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean createAlias(String indexName, String alias)
+			throws JSONException {
+		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
+
+		try {
+			lastResponse = r.json(completeUrl, put(content(""))).toObject();
+		} catch (IOException e) {
+			log.info("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Create an index alias with filter and optional routing. The filter and
+	 * routing must be created as explained in the ElasticSearch documentation.
+	 * This method will not check for validity.
+	 * 
+	 * @param indexName
+	 *            the index name you want to add an alias to
+	 * @param alias
+	 *            the alias name
+	 * @param filter
+	 *            a JSONDocument containing a valid alias filter and optional
+	 *            routing
+	 * @return true on success, false otherwise
+	 * @throws JSONException
+	 */
+	public boolean createFilterAlias(String indexName, String alias,
+			JSONObject filter) throws JSONException {
+		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
+
+		try {
+			lastResponse = r.json(completeUrl, put(content(filter))).toObject();
+		} catch (IOException e) {
+			log.warn("Exception: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Index the given document with the given id into given index and type.
 	 *
 	 * @param indexName
@@ -372,6 +423,5 @@ public class EsREST {
 			log.error(lastResponse.toString(2));
 			return false;
 		}
-
 	}
 }
