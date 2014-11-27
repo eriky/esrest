@@ -122,20 +122,6 @@ public class EsREST {
 		return compareResponseCode(result, 200);
 	}
 
-	private boolean compareResponseCode(HttpRequest result, int expectedCode) {
-		try {
-			if (result.asString().getStatus() == expectedCode) {
-				return true;
-			} else {
-				return false;
-			}
-		} catch (UnirestException e) {
-			log.error("Exception: " + e.getMessage());
-			e.printStackTrace();
-			return false;
-		}
-	}
-
 	/**
 	 * Create index.
 	 *
@@ -340,25 +326,6 @@ public class EsREST {
 		}
 	}
 
-	private void addIndexActionToBulk(String indexName, String type, String id,
-			org.json.JSONObject document) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("{ \"index\" : { \"_index\" : \"");
-		sb.append(indexName);
-		sb.append("\", \"_type\" : \"");
-		sb.append(type);
-		sb.append("\", \"_id\" : \"");
-		sb.append(id);
-		sb.append("\" } }");
-		String action = sb.toString();
-		String documentJson = document.toString();
-		bulkStringBuffer.append(action);
-		bulkStringBuffer.append('\n');
-		bulkStringBuffer.append(documentJson);
-		bulkStringBuffer.append('\n');
-		currentBulkSize += 1;
-	}
-
 	/**
 	 * <p>
 	 * doBulkRequest
@@ -380,13 +347,45 @@ public class EsREST {
 				return false;
 			}
 		} catch (org.json.JSONException e) {
-			e.printStackTrace();
-			return true;
+		    log.error("Exception: " + e.getMessage());
+			return false;
 		} catch (UnirestException e) {
-			e.printStackTrace();
+		    log.error("Exception: " + e.getMessage());
 			return false;
 		}
 		
 		return compareResponseCode(result, 200);
 	}
+
+    private void addIndexActionToBulk(String indexName, String type, String id,
+    		org.json.JSONObject document) {
+    	StringBuffer sb = new StringBuffer();
+    	sb.append("{ \"index\" : { \"_index\" : \"");
+    	sb.append(indexName);
+    	sb.append("\", \"_type\" : \"");
+    	sb.append(type);
+    	sb.append("\", \"_id\" : \"");
+    	sb.append(id);
+    	sb.append("\" } }");
+    	String action = sb.toString();
+    	String documentJson = document.toString();
+    	bulkStringBuffer.append(action);
+    	bulkStringBuffer.append('\n');
+    	bulkStringBuffer.append(documentJson);
+    	bulkStringBuffer.append('\n');
+    	currentBulkSize += 1;
+    }
+
+    private boolean compareResponseCode(HttpRequest result, int expectedCode) {
+    	try {
+    		if (result.asString().getStatus() == expectedCode) {
+    			return true;
+    		} else {
+    			return false;
+    		}
+    	} catch (UnirestException e) {
+    		log.error("Exception: " + e.getMessage());
+    		return false;
+    	}
+    }
 }
