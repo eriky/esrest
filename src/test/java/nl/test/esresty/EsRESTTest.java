@@ -114,10 +114,18 @@ public class EsRESTTest {
 	}
 
 	@Test
-	public void testWaitForStatus() throws UnirestException {
+	public void testWaitForYellowStatus() throws UnirestException {
 		boolean res = r.waitForClusterStatus("yellow", 2);
 		assertTrue(res);
 	}
+	
+	@Test
+    public void testWaitForGreenStatus() throws UnirestException {
+	    // create an index, by default with replica's so status will be yellow
+	    r.createIndex(testIndexName);
+        boolean res = r.waitForClusterStatus("green", 1);
+        assertFalse(res);
+    }
 
 	@Test
 	public void testCreateAlias() {
