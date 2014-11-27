@@ -2,8 +2,6 @@ package nl.test.esresty;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -12,9 +10,6 @@ import org.junit.Test;
 
 import com.eriky.EsREST;
 import com.mashape.unirest.http.exceptions.UnirestException;
-
-import us.monoid.json.JSONException;
-import us.monoid.json.JSONObject;
 
 /**
  * <p>
@@ -125,14 +120,14 @@ public class EsRESTTest {
 	}
 
 	@Test
-	public void testCreateAlias() throws JSONException {
+	public void testCreateAlias() {
 		r.createIndex(testIndexName);
 		boolean res = r.createAlias(testIndexName, testAliasName);
 		assertTrue(res);
 	}
 
 	@Test
-	public void testCreateFilterAlias() throws JSONException {
+	public void testCreateFilterAlias() {
 		// We need an index and a document with the field "age" before being
 		// able to create a filtered alias on that field
 		r.createIndex(testIndexName);
@@ -152,7 +147,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testIndexExists() throws JSONException {
+	public void testIndexExists() {
 		r.createIndex(testIndexName);
 		//assertFalse(r.indexExists("testeeeenotexistst112234"));
 		assertTrue(r.indexExists(testIndexName));
@@ -167,7 +162,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testCreateIndex() throws JSONException {
+	public void testCreateIndex() {
 		assertTrue(r.createIndex(testIndexName));
 	}
 
@@ -180,7 +175,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testCreateIndexWithSettings() throws JSONException {
+	public void testCreateIndexWithSettings() {
 		org.json.JSONObject indexSettings = new org.json.JSONObject(
 				"{ \"settings\": { \"number_of_shards\": 1, \"number_of_replicas\": 0} }");
 
@@ -196,7 +191,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testIndexDocWithId() throws JSONException {
+	public void testIndexDocWithId() {
 		r.createIndex(testIndexName);
 		assertTrue(r.index(testIndexName, testType, "1", testDocument));
 	}
@@ -210,7 +205,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testIndexDocWithoutId() throws JSONException {
+	public void testIndexDocWithoutId() {
 		r.createIndex(testIndexName);
 		assertTrue(r.index(testIndexName, testType, testDocument));
 	}
@@ -224,7 +219,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testDeleteIndexThatExists() throws JSONException {
+	public void testDeleteIndexThatExists() {
 		testCreateIndex();
 		assertTrue(r.deleteIndex(testIndexName));
 	}
@@ -238,13 +233,13 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testDeleteIndexThatDoesNotExist() throws JSONException {
+	public void testDeleteIndexThatDoesNotExist() {
 		testCreateIndex();
 		assertFalse(r.deleteIndex("doesnotexistsforsureright-11234"));
 	}
 
 	@Test
-	public void testPutMapping() throws JSONException {
+	public void testPutMapping() {
 		testCreateIndex();
 		assertTrue(r.putMapping(testIndexName, testType, testMapping));
 	}
@@ -258,7 +253,7 @@ public class EsRESTTest {
 	 *             if any.
 	 */
 	@Test
-	public void testValidBulkIndex() throws JSONException {
+	public void testValidBulkIndex() {
 		testCreateIndex();
 
 		r.setBulkSize(20);
