@@ -195,13 +195,18 @@ public class EsREST {
 	public boolean putMapping(String indexName, String type, JSONObject mapping)
 			throws JSONException {
 
-		String completeUrl = url + '/' + indexName + "/_mapping" + '/' + type;
+		String completeUrl = url + '/' + indexName + '/' + type + "/_mapping";
+		// For newer versions of Elasticsearch, this should be:
+		// String completeUrl = url + '/' + indexName + "/_mapping" + '/' +
+		// type;
+		// But it looks like 1.4.0 is backwards compatible with the current
+		// url
 
 		try {
 			lastResponse = r.json(completeUrl, put(content(mapping)))
 					.toObject();
 		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
+			log.error("Exception: " + e.getMessage());
 			return false;
 		}
 		return true;

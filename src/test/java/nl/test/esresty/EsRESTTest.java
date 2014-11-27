@@ -235,6 +235,18 @@ public class EsRESTTest {
 		assertFalse(r.deleteIndex("doesnotexistsforsureright-11234"));
 	}
 
+	@Test
+	public void testPutMapping() throws JSONException {
+		testCreateIndex();
+		String mappingString = "{ \""
+				+ this.testType
+				+ "\": { \"properties\": { \"age\": { \"type\": \"string\" } }}}";
+		System.out.println(mappingString);
+		JSONObject mapping = new JSONObject(mappingString);
+		
+		assertTrue(r.putMapping(testIndexName, testType, mapping));
+	}
+
 	/**
 	 *************************************************************************
 	 * BULK TESTS
