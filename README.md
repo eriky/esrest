@@ -2,7 +2,7 @@
 Welcome to EsREST. This is a simple, straightforward Java client to the ElasticSearch REST API.
 
 [![Build Status](https://travis-ci.org/eriky/esrest.svg)](https://travis-ci.org/eriky/esrest)
-[![Coverage Status](https://coveralls.io/repos/eriky/esrest/badge.png)](https://coveralls.io/r/eriky/esrest)
+[![Coverage Status](https://coveralls.io/repos/eriky/esrest/badge.png?branch=master)](https://coveralls.io/r/eriky/esrest?branch=master)
 
 ## About this little project
 If you found this project, you probably know Jest: the only Java based REST client for ElasticSearch.
