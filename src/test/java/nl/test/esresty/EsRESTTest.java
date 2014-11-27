@@ -30,6 +30,11 @@ public class EsRESTTest {
 	String testType = "test-type";
 	String testAliasName = "esresty-unittest-index-safe-to-delete-alias";
 	JSONObject testDocument;
+	JSONObject testMapping;
+	
+	String mappingString = "{ \""
+			+ this.testType
+			+ "\": { \"properties\": { \"age\": { \"type\": \"string\" } }}}";
 
 	/**
 	 * <p>
@@ -46,6 +51,7 @@ public class EsRESTTest {
 			System.err
 					.println("ERROR: Elasticsearch cluster status should be at least yellow to perform these unit tests");
 		}
+		testMapping = new JSONObject(mappingString);
 		testDocument = new JSONObject(
 				"{ \"name\": \"test\", \"age\": 40, \"post_date\" : \"2009-11-15T14:12:12\" }");
 	}
@@ -238,13 +244,7 @@ public class EsRESTTest {
 	@Test
 	public void testPutMapping() throws JSONException {
 		testCreateIndex();
-		String mappingString = "{ \""
-				+ this.testType
-				+ "\": { \"properties\": { \"age\": { \"type\": \"string\" } }}}";
-		System.out.println(mappingString);
-		JSONObject mapping = new JSONObject(mappingString);
-		
-		assertTrue(r.putMapping(testIndexName, testType, mapping));
+		assertTrue(r.putMapping(testIndexName, testType, testMapping));
 	}
 
 	/**
