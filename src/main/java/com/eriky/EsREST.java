@@ -196,11 +196,11 @@ public class EsREST {
 			throws JSONException {
 
 		String completeUrl = url + '/' + indexName + '/' + type + "/_mapping";
-		// For newer versions of Elasticsearch, this should be:
+		// Since Elasticsearch 1.x, this should be:
 		// String completeUrl = url + '/' + indexName + "/_mapping" + '/' +
 		// type;
-		// But it looks like 1.4.0 is backwards compatible with the current
-		// url
+		// But up to 1.4.0 ES is backwards compatible with the old url so we
+		// keep it this way for now
 
 		try {
 			lastResponse = r.json(completeUrl, put(content(mapping)))
