@@ -1,31 +1,27 @@
 package com.eriky;
 
-import java.io.IOException;
-
-import us.monoid.json.JSONException;
-import us.monoid.json.JSONObject;
-import us.monoid.web.Resty;
-import static us.monoid.web.Resty.content;
-import static us.monoid.web.Resty.put;
-import static us.monoid.web.Resty.delete;
-import static us.monoid.web.Resty.form;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.HttpRequest;
+import com.mashape.unirest.request.HttpRequestWithBody;
 
 /**
  * <p>
  * EsREST class.
  * </p>
  *
- * @author erik
+ * @author eriky
  * @version $Id: $
  */
 public class EsREST {
 	private Logger log = LoggerFactory.getLogger(EsREST.class);
-	private Resty r;
 	private String url;
-	private JSONObject lastResponse;
 	private int bulkSize = 200;
 	private int currentBulkSize = 0;
 	private StringBuffer bulkStringBuffer = new StringBuffer();
@@ -38,7 +34,6 @@ public class EsREST {
 	 *            slash, e.g. http://localhost:9200
 	 */
 	public EsREST(String elasticSearchUrl) {
-		r = new Resty();
 		url = elasticSearchUrl;
 	}
 
@@ -47,27 +42,26 @@ public class EsREST {
 	 * tagline, status code and version information.
 	 *
 	 * @return A JSONObject with the response
+	 * @throws UnirestException
 	 * @throws java.io.IOException
 	 *             if any.
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public JSONObject getBanner() throws IOException, JSONException {
-		lastResponse = r.json(url).toObject();
-		return lastResponse;
+	public org.json.JSONObject getBanner() throws UnirestException {
+		return Unirest.get(url).asJson().getBody().getObject();
 	}
 
 	/**
 	 * Retrieve cluster wide health (from hostname:port/_cluster/health).
 	 * 
 	 * @return A JSONObject with the response
-	 * @throws IOException
-	 * @throws JSONException
+	 * @throws UnirestException
 	 */
-	public JSONObject getHealth() throws IOException, JSONException {
+	public org.json.JSONObject getHealth() throws UnirestException {
 		String completeUrl = url + "/_cluster/health";
-		lastResponse = r.json(completeUrl).toObject();
-		return lastResponse;
+		return Unirest.get(completeUrl).asJson().getBody().getObject();
+
 	}
 
 	/**
@@ -80,38 +74,36 @@ public class EsREST {
 	 * @param timeout
 	 *            How long to wait, in seconds.
 	 * @return true if status was reached, false if status is not reached
-	 * @throws IOException
-	 * @throws JSONException
+	 * @throws UnirestException
 	 */
 	public boolean waitForClusterStatus(String status, int timeout)
-			throws IOException, JSONException {
-		String completeUrl = url + "/_cluster/health?wait_for_status=" + status
-				+ "&timeout=" + timeout;
-		lastResponse = r.json(completeUrl).toObject();
-		return !lastResponse.getBoolean("timed_out");
+			throws UnirestException {
+		org.json.JSONObject json;
+		HttpResponse<JsonNode> result = Unirest.get(
+				url + "/_cluster/health?wait_for_status=" + status
+						+ "&timeout=" + timeout + "s").asJson();
 
+		json = result.getBody().getObject();
+
+		if (result.getStatus() == 200) {
+			return !json.getBoolean("timed_out");
+		} else {
+			return false;
+		}
 	}
 
 	/**
-	 * Test if index exists by GETting the full url to the index. There is a
-	 * better way to do this: by only requesting the HEAD. HEAD requests are not
-	 * supported (yet) by Resty.
+	 * Check if index exists.
 	 *
 	 * @param indexName
 	 *            The index name
-	 * @return true on success, false otherwise
+	 * @return true if index exists, false otherwise
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean indexExists(String indexName) throws JSONException {
-		try {
-			lastResponse = r.json(url + '/' + indexName).toObject();
-		} catch (IOException e) {
-			// Exception is OK, since it simply means the index does not exist
-			log.debug("Exception: " + e.getMessage());
-			return false;
-		}
-		return true;
+	public boolean indexExists(String indexName) {
+		GetRequest result = Unirest.head(url + '/' + indexName);
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -123,15 +115,25 @@ public class EsREST {
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean createIndex(String indexName) throws JSONException {
+	public boolean createIndex(String indexName) {
+		HttpRequestWithBody result = Unirest.put(url + "/{index}").routeParam(
+				"index", indexName);
+
+		return compareResponseCode(result, 200);
+	}
+
+	private boolean compareResponseCode(HttpRequest result, int expectedCode) {
 		try {
-			lastResponse = r.json(url + '/' + indexName, put(content("")))
-					.toObject();
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
+			if (result.asString().getStatus() == expectedCode) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (UnirestException e) {
+			log.error("Exception: " + e.getMessage());
+			e.printStackTrace();
 			return false;
 		}
-		return true;
 	}
 
 	/**
@@ -146,17 +148,12 @@ public class EsREST {
 	 *            a {@link us.monoid.json.JSONObject} object containing the
 	 *            index settings.
 	 */
-	public boolean createIndexWithSettings(String indexName, JSONObject settings)
-			throws JSONException {
-		try {
-			lastResponse = r
-					.json(url + '/' + indexName, put(content(settings)))
-					.toObject();
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
-			return false;
-		}
-		return true;
+	public boolean createIndexWithSettings(String indexName,
+			org.json.JSONObject settings) {
+
+		HttpRequest result = Unirest.put(url + '/' + indexName)
+				.body(settings.toString()).getHttpRequest();
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -168,14 +165,10 @@ public class EsREST {
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean deleteIndex(String indexName) throws JSONException {
-		try {
-			lastResponse = r.json(url + '/' + indexName, delete()).toObject();
-			return true;
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
-			return false;
-		}
+	public boolean deleteIndex(String indexName) {
+		HttpRequest result = Unirest.delete(url + '/' + indexName)
+				.getHttpRequest();
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -192,24 +185,18 @@ public class EsREST {
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean putMapping(String indexName, String type, JSONObject mapping)
-			throws JSONException {
+	public boolean putMapping(String indexName, String type,
+			org.json.JSONObject mapping) {
 
 		String completeUrl = url + '/' + indexName + '/' + type + "/_mapping";
 		// Since Elasticsearch 1.x, this should be:
 		// String completeUrl = url + '/' + indexName + "/_mapping" + '/' +
 		// type;
-		// But up to 1.4.0 ES is backwards compatible with the old url so we
+		// But up to 1.4.0, ES is backwards compatible with the old url so we
 		// keep it this way for now
-
-		try {
-			lastResponse = r.json(completeUrl, put(content(mapping)))
-					.toObject();
-		} catch (IOException e) {
-			log.error("Exception: " + e.getMessage());
-			return false;
-		}
-		return true;
+		HttpRequest result = Unirest.put(completeUrl).body(mapping.toString())
+				.getHttpRequest();
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -222,17 +209,10 @@ public class EsREST {
 	 * @return true on success, false otherwise
 	 * @throws JSONException
 	 */
-	public boolean createAlias(String indexName, String alias)
-			throws JSONException {
+	public boolean createAlias(String indexName, String alias) {
 		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
-
-		try {
-			lastResponse = r.json(completeUrl, put(content(""))).toObject();
-		} catch (IOException e) {
-			log.info("Exception: " + e.getMessage());
-			return false;
-		}
-		return true;
+		HttpRequest result = Unirest.put(completeUrl).getHttpRequest();
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -251,16 +231,12 @@ public class EsREST {
 	 * @throws JSONException
 	 */
 	public boolean createFilterAlias(String indexName, String alias,
-			JSONObject filter) throws JSONException {
+			org.json.JSONObject filter) {
 		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
 
-		try {
-			lastResponse = r.json(completeUrl, put(content(filter))).toObject();
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
-			return false;
-		}
-		return true;
+		HttpRequest result = Unirest.put(completeUrl).body(filter.toString())
+				.getHttpRequest();
+		return compareResponseCode(result, 200);
 	}
 
 	/**
@@ -280,18 +256,13 @@ public class EsREST {
 	 *             if any.
 	 */
 	public boolean index(String indexName, String type, String id,
-			JSONObject document) throws JSONException {
+			org.json.JSONObject document) {
 
 		String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
 
-		try {
-			lastResponse = r.json(completeUrl, put(content(document)))
-					.toObject();
-			return true;
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
-			return false;
-		}
+		HttpRequest result = Unirest.put(completeUrl).body(document.toString())
+				.getHttpRequest();
+		return compareResponseCode(result, 201);
 	}
 
 	/**
@@ -308,30 +279,12 @@ public class EsREST {
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean index(String indexName, String type, JSONObject document)
-			throws JSONException {
-
-		String completeUrl = url + '/' + indexName + '/' + type + '/';
-
-		try {
-			lastResponse = r.json(completeUrl, form(document.toString()))
-					.toObject();
-			return true;
-		} catch (IOException e) {
-			log.warn("Exception: " + e.getMessage());
-			return false;
-		}
-	}
-
-	/**
-	 * Get the last response from ElasticSearch as JSONObject. Note that if the
-	 * last request failed due to a network error, this will return the last
-	 * response before the network problem started.
-	 *
-	 * @return a JSONObject with the response to the last request that was made.
-	 */
-	public JSONObject getLastResponse() {
-		return lastResponse;
+	public boolean index(String indexName, String type,
+			org.json.JSONObject document) {
+		String completeUrl = url + '/' + indexName + '/' + type;
+		HttpRequest result = Unirest.post(completeUrl).body(document.toString())
+				.getHttpRequest();
+		return compareResponseCode(result, 201);
 	}
 
 	/**
@@ -372,7 +325,7 @@ public class EsREST {
 	 *             if any.
 	 */
 	public boolean bulkIndex(String indexName, String type, String id,
-			JSONObject document) throws JSONException {
+			org.json.JSONObject document) {
 		addIndexActionToBulk(indexName, type, id, document);
 
 		if (currentBulkSize == bulkSize) {
@@ -388,7 +341,7 @@ public class EsREST {
 	}
 
 	private void addIndexActionToBulk(String indexName, String type, String id,
-			JSONObject document) {
+			org.json.JSONObject document) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ \"index\" : { \"_index\" : \"");
 		sb.append(indexName);
@@ -415,18 +368,25 @@ public class EsREST {
 	 * @throws us.monoid.json.JSONException
 	 *             if any.
 	 */
-	public boolean doBulkRequest() throws JSONException {
+	public boolean doBulkRequest() {
+
+		String bulkRequest = bulkStringBuffer.toString();
+		String completeUrl = url + "/_bulk";
+
+		HttpRequest result = Unirest.put(completeUrl).body(bulkRequest)
+				.getHttpRequest();
 		try {
-			String bulkRequest = bulkStringBuffer.toString();
-			log.debug(bulkRequest);
-			lastResponse = r.json(url + "/_bulk", put(content(bulkRequest)))
-					.toObject();
-			return true;
-		} catch (IOException e) {
-			log.error("Exception: " + e.getMessage());
+			if (result.asJson().getBody().getObject().getBoolean("errors")) {
+				return false;
+			}
+		} catch (org.json.JSONException e) {
 			e.printStackTrace();
-			log.error(lastResponse.toString(2));
+			return true;
+		} catch (UnirestException e) {
+			e.printStackTrace();
 			return false;
 		}
+		
+		return compareResponseCode(result, 200);
 	}
 }
