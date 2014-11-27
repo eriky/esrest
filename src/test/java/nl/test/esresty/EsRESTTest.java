@@ -21,7 +21,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
  * @since 0.1.1
  */
 public class EsRESTTest {
-	EsREST r;
+	EsREST rValid, rInValid;
 	String testIndexName = "esresty-unittest-index-safe-to-delete";
 	String testType = "test-type";
 	String testAliasName = "esresty-unittest-index-safe-to-delete-alias";
@@ -42,7 +42,8 @@ public class EsRESTTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		r = new EsREST("http://localhost:9200");
+		rValid = new EsREST("http://localhost:9200");
+		rInValid = new EsREST("http://localhost:9201");
 //		if (!r.waitForClusterStatus("yellow", 2)) {
 //			System.err
 //					.println("ERROR: Elasticsearch cluster status should be at least yellow to perform these unit tests");
@@ -63,7 +64,7 @@ public class EsRESTTest {
 	@After
 	public void tearDown() throws Exception {
 		// most tests will create the test index, so always try to delete it
-		r.deleteIndex(testIndexName);
+		rValid.deleteIndex(testIndexName);
 	}
 
 	/**
@@ -103,46 +104,48 @@ public class EsRESTTest {
 	 */
 	@Test
 	public void testGetStatus() throws UnirestException {
-		org.json.JSONObject res = r.getBanner();
+		org.json.JSONObject res = rValid.getBanner();
 		assertEquals(res.getInt("status"), 200);
 	}
 
 	@Test
 	public void testGetHealth() throws UnirestException {
-		org.json.JSONObject res = r.getHealth();
+		org.json.JSONObject res = rValid.getHealth();
 		assertEquals(res.getInt("number_of_nodes"), 1);
 	}
 
 	@Test
 	public void testWaitForYellowStatus() throws UnirestException {
-		boolean res = r.waitForClusterStatus("yellow", 2);
-		assertTrue(res);
+	    assertTrue(rValid.waitForClusterStatus("yellow", 1));
 	}
 	
 	@Test
     public void testWaitForGreenStatus() throws UnirestException {
 	    // create an index, by default with replica's so status will be yellow
-	    r.createIndex(testIndexName);
-        boolean res = r.waitForClusterStatus("green", 1);
-        assertFalse(res);
+	    rValid.createIndex(testIndexName);
+	    assertFalse(rValid.waitForClusterStatus("green", 1));
     }
 
 	@Test
 	public void testCreateAlias() {
-		r.createIndex(testIndexName);
-		boolean res = r.createAlias(testIndexName, testAliasName);
-		assertTrue(res);
+		rValid.createIndex(testIndexName);
+		assertTrue(rValid.createAlias(testIndexName, testAliasName));
 	}
-
+	
+	@Test
+	public void testCreateAliasInvalidUrl() {
+        assertFalse(rInValid.createAlias(testIndexName, testAliasName));
+    }
+	
 	@Test
 	public void testCreateFilterAlias() {
 		// We need an index and a document with the field "age" before being
 		// able to create a filtered alias on that field
-		r.createIndex(testIndexName);
-		r.index(testIndexName, testType, testDocument);
+		rValid.createIndex(testIndexName);
+		rValid.index(testIndexName, testType, testDocument);
 		org.json.JSONObject filter = new org.json.JSONObject(
 				"{\"filter\" : { \"term\" : { \"age\" : 40 } } }");
-		boolean res = r.createFilterAlias(testIndexName, testAliasName, filter);
+		boolean res = rValid.createFilterAlias(testIndexName, testAliasName, filter);
 		assertTrue(res);
 	}
 
@@ -156,9 +159,9 @@ public class EsRESTTest {
 	 */
 	@Test
 	public void testIndexExists() {
-		r.createIndex(testIndexName);
+		rValid.createIndex(testIndexName);
 		//assertFalse(r.indexExists("testeeeenotexistst112234"));
-		assertTrue(r.indexExists(testIndexName));
+		assertTrue(rValid.indexExists(testIndexName));
 	}
 
 	/**
@@ -171,7 +174,7 @@ public class EsRESTTest {
 	 */
 	@Test
 	public void testCreateIndex() {
-		assertTrue(r.createIndex(testIndexName));
+		assertTrue(rValid.createIndex(testIndexName));
 	}
 
 	/**
@@ -187,7 +190,7 @@ public class EsRESTTest {
 		org.json.JSONObject indexSettings = new org.json.JSONObject(
 				"{ \"settings\": { \"number_of_shards\": 1, \"number_of_replicas\": 0} }");
 
-		assertTrue(r.createIndexWithSettings(testIndexName, indexSettings));
+		assertTrue(rValid.createIndexWithSettings(testIndexName, indexSettings));
 	}
 
 	/**
@@ -200,8 +203,8 @@ public class EsRESTTest {
 	 */
 	@Test
 	public void testIndexDocWithId() {
-		r.createIndex(testIndexName);
-		assertTrue(r.index(testIndexName, testType, "1", testDocument));
+		rValid.createIndex(testIndexName);
+		assertTrue(rValid.index(testIndexName, testType, "1", testDocument));
 	}
 
 	/**
@@ -214,8 +217,8 @@ public class EsRESTTest {
 	 */
 	@Test
 	public void testIndexDocWithoutId() {
-		r.createIndex(testIndexName);
-		assertTrue(r.index(testIndexName, testType, testDocument));
+		rValid.createIndex(testIndexName);
+		assertTrue(rValid.index(testIndexName, testType, testDocument));
 	}
 
 	/**
@@ -229,7 +232,7 @@ public class EsRESTTest {
 	@Test
 	public void testDeleteIndexThatExists() {
 		testCreateIndex();
-		assertTrue(r.deleteIndex(testIndexName));
+		assertTrue(rValid.deleteIndex(testIndexName));
 	}
 
 	/**
@@ -243,13 +246,13 @@ public class EsRESTTest {
 	@Test
 	public void testDeleteIndexThatDoesNotExist() {
 		testCreateIndex();
-		assertFalse(r.deleteIndex("doesnotexistsforsureright-11234"));
+		assertFalse(rValid.deleteIndex("doesnotexistsforsureright-11234"));
 	}
 
 	@Test
 	public void testPutMapping() {
 		testCreateIndex();
-		assertTrue(r.putMapping(testIndexName, testType, testMapping));
+		assertTrue(rValid.putMapping(testIndexName, testType, testMapping));
 	}
 
 	/**
@@ -264,11 +267,11 @@ public class EsRESTTest {
 	public void testValidBulkIndex() {
 		testCreateIndex();
 
-		r.setBulkSize(20);
+		rValid.setBulkSize(20);
 		for (int i = 0; i < 20; i++) {
-			assertTrue(r.bulkIndex(testIndexName, testType,
+			assertTrue(rValid.bulkIndex(testIndexName, testType,
 					Integer.toString(i), testDocument));
 		}
-		assertEquals(r.getCurrentBulkSize(), 0);
+		assertEquals(rValid.getCurrentBulkSize(), 0);
 	}
 }
