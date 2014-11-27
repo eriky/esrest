@@ -14,8 +14,8 @@ I was not satisfied with the way Jest works. Some of my frustrations:
 EsREST does not depend on the ElasticSearch jar. EsREST will give you back information on wether a request
 succeeded or failed. But please keep reading, since EsREST is far from perfect too.
 
-## Resty
-I used another *not so complete, not completely finished* Java project called Resty as a base. Resty handles
+## Unirest
+I used another Java project called Unirest as a base. Unirest handles
 all the actual REST requests and does so in an elegant manner.
 
 ## Want to use this project?
@@ -25,8 +25,8 @@ I basically implemented what *I* needed, and that's it. However I welcome you to
 (or request) more functionality.
 
 ## How to use EsREST
-Since you are a coder, for now I would like to refer you to the unit tests of EsREST. I try to cover as
-much code as possible with the unit tests, so there is example code of all the public EsREST methods.
+For now I would like to refer you to the unit tests of EsREST. I try to cover as
+much code as possible with the unit tests, so there should be example code for all the public EsREST methods.
 
 ## TODO's
 * Write documentation with samples
