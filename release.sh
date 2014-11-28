@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mvn -DperformRelease=true ...
+mvn -DperformRelease=true release:perform
