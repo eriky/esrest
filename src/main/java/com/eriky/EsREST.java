@@ -24,7 +24,9 @@ public class EsREST {
 	private String url;
 	private int bulkSize = 200;
 	private int currentBulkSize = 0;
-	private StringBuffer bulkStringBuffer = new StringBuffer();
+	/* Estimate the initial capacity for the StringBuilder to improve performance */
+	private int initialStringBuilderCapacity = bulkSize * 1024;
+	private StringBuilder bulkString = new StringBuilder(initialStringBuilderCapacity);
 
 	/**
 	 * Create a new esResty client.
@@ -297,7 +299,7 @@ public class EsREST {
 			boolean success = doBulkRequest();
 			if (success) {
 				currentBulkSize = 0;
-				bulkStringBuffer.setLength(0);
+				bulkString.setLength(0);
 			}
 			return success;
 		} else {
@@ -314,7 +316,7 @@ public class EsREST {
 	 */
 	public boolean doBulkRequest() {
 
-		String bulkRequest = bulkStringBuffer.toString();
+		String bulkRequest = bulkString.toString();
 		String completeUrl = url + "/_bulk";
 
 		HttpRequest result = Unirest.put(completeUrl).body(bulkRequest)
@@ -348,10 +350,10 @@ public class EsREST {
 		sb.append("\" } }");
 		String action = sb.toString();
 		String documentJson = document.toString();
-		bulkStringBuffer.append(action);
-		bulkStringBuffer.append('\n');
-		bulkStringBuffer.append(documentJson);
-		bulkStringBuffer.append('\n');
+		bulkString.append(action);
+		bulkString.append('\n');
+		bulkString.append(documentJson);
+		bulkString.append('\n');
 		currentBulkSize += 1;
 	}
 
