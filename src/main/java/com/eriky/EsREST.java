@@ -347,10 +347,12 @@ public class EsREST {
 				return false;
 			}
 		} catch (org.json.JSONException e) {
-		    log.error("Exception: " + e.getMessage());
-			return false;
+		    log.warn("Could not check for errors in JSON, most probably you are using an old version of Elasticsearch.");
+		    log.warn("The errors field in bulk responses was added in ES 1.0. Exception was:");
+			log.warn(e.getMessage());
+			return true;
 		} catch (UnirestException e) {
-		    log.error("Exception: " + e.getMessage());
+		    log.error(e.getMessage());
 			return false;
 		}
 		
@@ -384,7 +386,7 @@ public class EsREST {
     			return false;
     		}
     	} catch (UnirestException e) {
-    		log.error("Exception: " + e.getMessage());
+    		log.error(e.getMessage());
     		return false;
     	}
     }
