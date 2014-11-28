@@ -43,10 +43,6 @@ public class EsREST {
 	 *
 	 * @return A JSONObject with the response
 	 * @throws UnirestException
-	 * @throws java.io.IOException
-	 *             if any.
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public org.json.JSONObject getBanner() throws UnirestException {
 		return Unirest.get(url).asJson().getBody().getObject();
@@ -98,8 +94,6 @@ public class EsREST {
 	 * @param indexName
 	 *            The index name
 	 * @return true if index exists, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean indexExists(String indexName) {
 		GetRequest result = Unirest.head(url + '/' + indexName);
@@ -112,8 +106,6 @@ public class EsREST {
 	 * @param indexName
 	 *            The name of the to be created index
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean createIndex(String indexName) {
 		HttpRequestWithBody result = Unirest.put(url + "/{index}").routeParam(
@@ -128,11 +120,9 @@ public class EsREST {
 	 * @param indexName
 	 *            The index name
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 * @param settings
-	 *            a {@link us.monoid.json.JSONObject} object containing the
-	 *            index settings.
+	 *            a {@link org.json.JSONObject} object containing the index
+	 *            settings.
 	 */
 	public boolean createIndexWithSettings(String indexName,
 			org.json.JSONObject settings) {
@@ -148,8 +138,6 @@ public class EsREST {
 	 * @param indexName
 	 *            The index name
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean deleteIndex(String indexName) {
 		HttpRequest result = Unirest.delete(url + '/' + indexName)
@@ -168,8 +156,6 @@ public class EsREST {
 	 *            a {@link us.monoid.json.JSONObject} object containing the
 	 *            mapping.
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean putMapping(String indexName, String type,
 			org.json.JSONObject mapping) {
@@ -193,7 +179,6 @@ public class EsREST {
 	 * @param alias
 	 *            the alias name
 	 * @return true on success, false otherwise
-	 * @throws JSONException
 	 */
 	public boolean createAlias(String indexName, String alias) {
 		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
@@ -214,7 +199,6 @@ public class EsREST {
 	 *            a JSONDocument containing a valid alias filter and optional
 	 *            routing
 	 * @return true on success, false otherwise
-	 * @throws JSONException
 	 */
 	public boolean createFilterAlias(String indexName, String alias,
 			org.json.JSONObject filter) {
@@ -238,8 +222,6 @@ public class EsREST {
 	 *            The document as a {@link us.monoid.json.JSONObject} object
 	 *            containing the mapping.
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean index(String indexName, String type, String id,
 			org.json.JSONObject document) {
@@ -262,14 +244,12 @@ public class EsREST {
 	 * @param document
 	 *            the document as a JSONObject
 	 * @return true on success, false otherwise
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean index(String indexName, String type,
 			org.json.JSONObject document) {
 		String completeUrl = url + '/' + indexName + '/' + type;
-		HttpRequest result = Unirest.post(completeUrl).body(document.toString())
-				.getHttpRequest();
+		HttpRequest result = Unirest.post(completeUrl)
+				.body(document.toString()).getHttpRequest();
 		return compareResponseCode(result, 201);
 	}
 
@@ -277,7 +257,8 @@ public class EsREST {
 	 * Set the maximum size of the bulk queue.
 	 *
 	 * @param numberOfDocuments
-	 *            a int.
+	 *            the number of docs after which the queue will be submitted to
+	 *            ES.
 	 */
 	public void setBulkSize(int numberOfDocuments) {
 		bulkSize = numberOfDocuments;
@@ -305,10 +286,8 @@ public class EsREST {
 	 * @param id
 	 *            a {@link java.lang.String} object.
 	 * @param document
-	 *            a {@link us.monoid.json.JSONObject} object.
+	 *            a {@link org.json.JSONObject} object.
 	 * @return a boolean.
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean bulkIndex(String indexName, String type, String id,
 			org.json.JSONObject document) {
@@ -332,8 +311,6 @@ public class EsREST {
 	 * </p>
 	 *
 	 * @return a boolean.
-	 * @throws us.monoid.json.JSONException
-	 *             if any.
 	 */
 	public boolean doBulkRequest() {
 
@@ -347,47 +324,47 @@ public class EsREST {
 				return false;
 			}
 		} catch (org.json.JSONException e) {
-		    log.warn("Could not check for errors in JSON, most probably you are using an old version of Elasticsearch.");
-		    log.warn("The errors field in bulk responses was added in ES 1.0. Exception was:");
+			log.warn("Could not check for errors in JSON, most probably you are using an old version of Elasticsearch.");
+			log.warn("The errors field in bulk responses was added in ES 1.0. Exception was:");
 			log.warn(e.getMessage());
 			return true;
 		} catch (UnirestException e) {
-		    log.error(e.getMessage());
+			log.error(e.getMessage());
 			return false;
 		}
-		
+
 		return compareResponseCode(result, 200);
 	}
 
-    private void addIndexActionToBulk(String indexName, String type, String id,
-    		org.json.JSONObject document) {
-    	StringBuffer sb = new StringBuffer();
-    	sb.append("{ \"index\" : { \"_index\" : \"");
-    	sb.append(indexName);
-    	sb.append("\", \"_type\" : \"");
-    	sb.append(type);
-    	sb.append("\", \"_id\" : \"");
-    	sb.append(id);
-    	sb.append("\" } }");
-    	String action = sb.toString();
-    	String documentJson = document.toString();
-    	bulkStringBuffer.append(action);
-    	bulkStringBuffer.append('\n');
-    	bulkStringBuffer.append(documentJson);
-    	bulkStringBuffer.append('\n');
-    	currentBulkSize += 1;
-    }
+	private void addIndexActionToBulk(String indexName, String type, String id,
+			org.json.JSONObject document) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{ \"index\" : { \"_index\" : \"");
+		sb.append(indexName);
+		sb.append("\", \"_type\" : \"");
+		sb.append(type);
+		sb.append("\", \"_id\" : \"");
+		sb.append(id);
+		sb.append("\" } }");
+		String action = sb.toString();
+		String documentJson = document.toString();
+		bulkStringBuffer.append(action);
+		bulkStringBuffer.append('\n');
+		bulkStringBuffer.append(documentJson);
+		bulkStringBuffer.append('\n');
+		currentBulkSize += 1;
+	}
 
-    private boolean compareResponseCode(HttpRequest result, int expectedCode) {
-    	try {
-    		if (result.asString().getStatus() == expectedCode) {
-    			return true;
-    		} else {
-    			return false;
-    		}
-    	} catch (UnirestException e) {
-    		log.error(e.getMessage());
-    		return false;
-    	}
-    }
+	private boolean compareResponseCode(HttpRequest result, int expectedCode) {
+		try {
+			if (result.asString().getStatus() == expectedCode) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (UnirestException e) {
+			log.error(e.getMessage());
+			return false;
+		}
+	}
 }
