@@ -2,6 +2,7 @@ package nl.test.esresty;
 
 import static org.junit.Assert.*;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -21,7 +22,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
  * @since 0.1.1
  */
 public class EsRESTTest {
-    EsREST rValid, rInValid;
+    EsREST rValid, rInvalid;
     String testIndexName = "esresty-unittest-index-safe-to-delete";
     String testType = "test-type";
     String testAliasName = "esresty-unittest-index-safe-to-delete-alias";
@@ -29,7 +30,7 @@ public class EsRESTTest {
     org.json.JSONObject testMapping;
 
     String mappingString = "{ \"" + this.testType
-            + "\": { \"properties\": { \"age\": { \"type\": \"string\" } }}}";
+            + "\": { \"properties\": { \"age\": { \"type\": \"integer\" } }}}";
 
     /**
      * <p>
@@ -42,7 +43,7 @@ public class EsRESTTest {
     @Before
     public void setUp() throws Exception {
         rValid = new EsREST("http://localhost:9200");
-        rInValid = new EsREST("http://localhost:9201");
+        rInvalid = new EsREST("http://localhost:9201");
         // if (!r.waitForClusterStatus("yellow", 2)) {
         // System.err
         // .println("ERROR: Elasticsearch cluster status should be at least yellow to perform these unit tests");
@@ -94,11 +95,6 @@ public class EsRESTTest {
      * <p>
      * testGetStatus
      * </p>
-     *
-     * @throws java.io.IOException
-     *             if any.
-     * @throws us.monoid.json.JSONException
-     *             if any.
      * @throws UnirestException
      */
     @Test
@@ -133,7 +129,7 @@ public class EsRESTTest {
 
     @Test
     public void testCreateAliasInvalidUrl() {
-        assertFalse(rInValid.createAlias(testIndexName, testAliasName));
+        assertFalse(rInvalid.createAlias(testIndexName, testAliasName));
     }
 
     @Test
@@ -154,8 +150,6 @@ public class EsRESTTest {
      * testIndexExists
      * </p>
      *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testIndexExists() {
@@ -169,8 +163,6 @@ public class EsRESTTest {
      * testCreateIndex
      * </p>
      *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testCreateIndex() {
@@ -182,8 +174,6 @@ public class EsRESTTest {
      * testCreateIndexWithSettings
      * </p>
      *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testCreateIndexWithSettings() {
@@ -198,22 +188,47 @@ public class EsRESTTest {
      * testIndexDocWithId
      * </p>
      *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testIndexDocWithId() {
         rValid.createIndex(testIndexName);
         assertTrue(rValid.index(testIndexName, testType, "1", testDocument));
+        JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
+        assertEquals(doc.getString("_id"), "1");
+    }
+    
+    @Test
+    public void getGetDocumentWithType() {
+    	rValid.createIndex(testIndexName);
+        rValid.index(testIndexName, testType, "1", testDocument);
+        JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
+        assertEquals(doc.getString("_id"), "1");
+    }
+    
+    @Test
+    public void getGetDocumentWithoutType() {
+    	rValid.createIndex(testIndexName);
+        rValid.index(testIndexName, testType, "1", testDocument);
+        JSONObject doc = rValid.getDocument(testIndexName, "1");
+        assertEquals(doc.getString("_id"), "1");
+    }
+    
+    @Test
+    public void getGetDocumentFromInvalidServer() {
+        JSONObject doc = rInvalid.getDocument(testIndexName, testType, "1");
+        assertNull(doc);
+    }
+    
+    @Test
+    public void getGetNonExistingDocument() {
+        JSONObject doc = rValid.getDocument(testIndexName, testType, "doesnotexist");
+        assertNull(doc);
     }
 
     /**
      * <p>
      * testIndexDocWithoutId
      * </p>
-     *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testIndexDocWithoutId() {
@@ -225,9 +240,6 @@ public class EsRESTTest {
      * <p>
      * testDeleteIndexThatExists
      * </p>
-     *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testDeleteIndexThatExists() {
@@ -239,9 +251,6 @@ public class EsRESTTest {
      * <p>
      * testDeleteIndexThatDoesNotExist
      * </p>
-     *
-     * @throws us.monoid.json.JSONException
-     *             if any.
      */
     @Test
     public void testDeleteIndexThatDoesNotExist() {
@@ -274,14 +283,14 @@ public class EsRESTTest {
 
     @Test
     public void testInValidBulkIndex() {
-        rInValid.setBulkSize(20);
+        rInvalid.setBulkSize(20);
         for (int i = 0; i < 19; i++) {
-            assertTrue(rInValid.bulkIndex(testIndexName, testType,
+            assertTrue(rInvalid.bulkIndex(testIndexName, testType,
                     Integer.toString(i), testDocument));
         }
-        assertFalse(rInValid.bulkIndex(testIndexName, testType,
+        assertFalse(rInvalid.bulkIndex(testIndexName, testType,
                 Integer.toString(19), testDocument));
-        assertNotEquals(rInValid.getCurrentBulkSize(), 0);
+        assertNotEquals(rInvalid.getCurrentBulkSize(), 0);
     }
 
 }

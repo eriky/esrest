@@ -24,9 +24,13 @@ public class EsREST {
 	private String url;
 	private int bulkSize = 200;
 	private int currentBulkSize = 0;
-	/* Estimate the initial capacity for the StringBuilder to improve performance */
+	/*
+	 * Estimate the initial capacity for the StringBuilder to improve
+	 * performance
+	 */
 	private int initialStringBuilderCapacity = bulkSize * 1024;
-	private StringBuilder bulkString = new StringBuilder(initialStringBuilderCapacity);
+	private StringBuilder bulkString = new StringBuilder(
+			initialStringBuilderCapacity);
 
 	/**
 	 * Create a new esResty client.
@@ -253,6 +257,50 @@ public class EsREST {
 		HttpRequest result = Unirest.post(completeUrl)
 				.body(document.toString()).getHttpRequest();
 		return compareResponseCode(result, 201);
+	}
+
+	/**
+	 * Get document with the given id from given index. The type will default to
+	 * "_all" and will fetch the first document matching the id across all
+	 * types.
+	 * 
+	 * @param indexName
+	 *            the index name
+	 * @param id
+	 *            the document id
+	 * @return a {@link org.json.JSONObject} containing the document
+	 */
+	public org.json.JSONObject getDocument(String indexName, String id) {
+		return getDocument(indexName, "_all", id);
+	}
+
+	/**
+	 * Get document with the given id from given index and type.
+	 * 
+	 * @param indexName
+	 *            the index name
+	 * @param type
+	 *            the document type
+	 * @param id
+	 *            the document id
+	 * @return a {@link org.json.JSONObject} containing the document
+	 */
+	public org.json.JSONObject getDocument(String indexName, String type,
+			String id) {
+		String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
+		HttpRequest result = Unirest.get(completeUrl).getHttpRequest();
+		if (compareResponseCode(result, 200)) {
+			try {
+				return result.asJson().getBody().getObject();
+			} catch (UnirestException e) {
+				log.error(e.getMessage());
+			}
+		} else {
+			log.info("Failed to GET from "
+					+ completeUrl
+					+ " : Elasticsearch returned a status code that was not 200.");
+		}
+		return null;
 	}
 
 	/**
