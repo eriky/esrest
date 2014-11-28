@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-mvn -DperformRelease=true release:perform
+mvn -DperformRelease=true release:prepare -Dresume=false
