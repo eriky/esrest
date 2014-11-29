@@ -1,8 +1,10 @@
 package com.eriky;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.eriky.requests.Get;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -50,7 +52,7 @@ public class EsREST {
 	 * @return A JSONObject with the response
 	 * @throws UnirestException
 	 */
-	public org.json.JSONObject getBanner() throws UnirestException {
+	public JSONObject getBanner() throws UnirestException {
 		return Unirest.get(url).asJson().getBody().getObject();
 	}
 
@@ -60,7 +62,7 @@ public class EsREST {
 	 * @return A JSONObject with the response
 	 * @throws UnirestException
 	 */
-	public org.json.JSONObject getHealth() throws UnirestException {
+	public JSONObject getHealth() throws UnirestException {
 		String completeUrl = url + "/_cluster/health";
 		return Unirest.get(completeUrl).asJson().getBody().getObject();
 
@@ -80,7 +82,7 @@ public class EsREST {
 	 */
 	public boolean waitForClusterStatus(String status, int timeout)
 			throws UnirestException {
-		org.json.JSONObject json;
+		JSONObject json;
 		HttpResponse<JsonNode> result = Unirest.get(
 				url + "/_cluster/health?wait_for_status=" + status
 						+ "&timeout=" + timeout + "s").asJson();
@@ -127,11 +129,11 @@ public class EsREST {
 	 *            The index name
 	 * @return true on success, false otherwise
 	 * @param settings
-	 *            a {@link org.json.JSONObject} object containing the index
+	 *            a {@link JSONObject} object containing the index
 	 *            settings.
 	 */
 	public boolean createIndexWithSettings(String indexName,
-			org.json.JSONObject settings) {
+			JSONObject settings) {
 
 		HttpRequest result = Unirest.put(url + '/' + indexName)
 				.body(settings.toString()).getHttpRequest();
@@ -164,7 +166,7 @@ public class EsREST {
 	 * @return true on success, false otherwise
 	 */
 	public boolean putMapping(String indexName, String type,
-			org.json.JSONObject mapping) {
+			JSONObject mapping) {
 
 		String completeUrl = url + '/' + indexName + '/' + type + "/_mapping";
 		// Since Elasticsearch 1.x, this should be:
@@ -207,7 +209,7 @@ public class EsREST {
 	 * @return true on success, false otherwise
 	 */
 	public boolean createFilterAlias(String indexName, String alias,
-			org.json.JSONObject filter) {
+			JSONObject filter) {
 		String completeUrl = url + '/' + indexName + "/_alias" + '/' + alias;
 
 		HttpRequest result = Unirest.put(completeUrl).body(filter.toString())
@@ -230,7 +232,7 @@ public class EsREST {
 	 * @return true on success, false otherwise
 	 */
 	public boolean index(String indexName, String type, String id,
-			org.json.JSONObject document) {
+			JSONObject document) {
 
 		String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
 
@@ -252,7 +254,7 @@ public class EsREST {
 	 * @return true on success, false otherwise
 	 */
 	public boolean index(String indexName, String type,
-			org.json.JSONObject document) {
+			JSONObject document) {
 		String completeUrl = url + '/' + indexName + '/' + type;
 		HttpRequest result = Unirest.post(completeUrl)
 				.body(document.toString()).getHttpRequest();
@@ -268,9 +270,9 @@ public class EsREST {
 	 *            the index name
 	 * @param id
 	 *            the document id
-	 * @return a {@link org.json.JSONObject} containing the document
+	 * @return a {@link JSONObject} containing the document
 	 */
-	public org.json.JSONObject getDocument(String indexName, String id) {
+	public JSONObject getDocument(String indexName, String id) {
 		return getDocument(indexName, "_all", id);
 	}
 
@@ -283,12 +285,13 @@ public class EsREST {
 	 *            the document type
 	 * @param id
 	 *            the document id
-	 * @return a {@link org.json.JSONObject} containing the document
+	 * @return a {@link JSONObject} containing the document
 	 */
-	public org.json.JSONObject getDocument(String indexName, String type,
+	public JSONObject getDocument(String indexName, String type,
 			String id) {
 		String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
-		HttpRequest result = Unirest.get(completeUrl).getHttpRequest();
+		HttpRequest result = Unirest.get(completeUrl);
+		
 		if (compareResponseCode(result, 200)) {
 			try {
 				return result.asJson().getBody().getObject();
@@ -301,6 +304,10 @@ public class EsREST {
 					+ " : Elasticsearch returned a status code that was not 200.");
 		}
 		return null;
+	}
+	
+	public Get getDocumentNewStyle(String indexName, String type, String id) {
+	    return new Get(url, indexName, type, id);
 	}
 
 	/**
@@ -336,11 +343,11 @@ public class EsREST {
 	 * @param id
 	 *            a {@link java.lang.String} object.
 	 * @param document
-	 *            a {@link org.json.JSONObject} object.
+	 *            a {@link JSONObject} object.
 	 * @return a boolean.
 	 */
 	public boolean bulkIndex(String indexName, String type, String id,
-			org.json.JSONObject document) {
+			JSONObject document) {
 		addIndexActionToBulk(indexName, type, id, document);
 
 		if (currentBulkSize == bulkSize) {
@@ -387,7 +394,7 @@ public class EsREST {
 	}
 
 	private void addIndexActionToBulk(String indexName, String type, String id,
-			org.json.JSONObject document) {
+			JSONObject document) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ \"index\" : { \"_index\" : \"");
 		sb.append(indexName);

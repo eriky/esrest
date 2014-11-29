@@ -95,6 +95,7 @@ public class EsRESTTest {
      * <p>
      * testGetStatus
      * </p>
+     * 
      * @throws UnirestException
      */
     @Test
@@ -196,32 +197,44 @@ public class EsRESTTest {
         JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
         assertEquals(doc.getString("_id"), "1");
     }
-    
+
+    @Test
+    public void testGetDocumentNewStyle() {
+        rValid.createIndex(testIndexName);
+        assertTrue(rValid.index(testIndexName, testType, "1", testDocument));
+        JSONObject doc = rValid
+                .getDocumentNewStyle(testIndexName, testType, "1")
+                .routing(null).source(false).fields("age").execute();
+        System.out.println(doc.toString(2));
+        assertEquals(doc.getString("_id"), "1");
+    }
+
     @Test
     public void getGetDocumentWithType() {
-    	rValid.createIndex(testIndexName);
+        rValid.createIndex(testIndexName);
         rValid.index(testIndexName, testType, "1", testDocument);
         JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
         assertEquals(doc.getString("_id"), "1");
     }
-    
+
     @Test
     public void getGetDocumentWithoutType() {
-    	rValid.createIndex(testIndexName);
+        rValid.createIndex(testIndexName);
         rValid.index(testIndexName, testType, "1", testDocument);
         JSONObject doc = rValid.getDocument(testIndexName, "1");
         assertEquals(doc.getString("_id"), "1");
     }
-    
+
     @Test
     public void getGetDocumentFromInvalidServer() {
         JSONObject doc = rInvalid.getDocument(testIndexName, testType, "1");
         assertNull(doc);
     }
-    
+
     @Test
     public void getGetNonExistingDocument() {
-        JSONObject doc = rValid.getDocument(testIndexName, testType, "doesnotexist");
+        JSONObject doc = rValid.getDocument(testIndexName, testType,
+                "doesnotexist");
         assertNull(doc);
     }
 
