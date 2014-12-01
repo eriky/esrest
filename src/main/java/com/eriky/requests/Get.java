@@ -21,6 +21,7 @@ public class Get extends Request {
 
     public Get(String url) {
         this.url = url;
+        type = "_all";
     }
 
     public Get withUrl(String url) {
@@ -42,8 +43,8 @@ public class Get extends Request {
         this.id = id;
         return this;
     }
-    
-    public Get sourceOnly(boolean sourceOnly) {   
+
+    public Get sourceOnly(boolean sourceOnly) {
         this.sourceOnly = sourceOnly;
         return this;
     }
@@ -63,7 +64,13 @@ public class Get extends Request {
         queryStrings.put("fields", fields);
         return this;
     }
-    
+
+    /**
+     * See http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-get.html
+     * 
+     * @param preference the preference String
+     * @return
+     */
     public Get preference(String preference) {
         queryStrings.put("preference", preference);
         return this;
@@ -73,32 +80,28 @@ public class Get extends Request {
         queryStrings.put("refresh", refresh);
         return this;
     }
-    
+
     public Get version(String version) {
         queryStrings.put("version", version);
         return this;
     }
-    
+
     public JSONObject execute() throws EsRESTException {
         if (indexName == null) {
             throw new EsRESTException("No index name specified");
         }
-        if (type == null) {
-            type = "_all";
-        }
+
         if (id == null) {
             throw new EsRESTException("No document id specified");
         }
-        
-        String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
-        if (sourceOnly) {
-            completeUrl += "/_source";
-        }
-        
-        HttpRequest httpRequest = Unirest.get(completeUrl).queryString(queryStrings);
+
+        String completeUrl = getUrl();
+
+        HttpRequest httpRequest = Unirest.get(completeUrl).queryString(
+                queryStrings);
 
         log.debug("all parameters set for request: " + httpRequest.getUrl());
-        
+
         if (compareResponseCode(httpRequest, 200)) {
             try {
                 return httpRequest.asJson().getBody().getObject();
@@ -107,9 +110,29 @@ public class Get extends Request {
                 throw new EsRESTException(e);
             }
         } else {
-            log.warn("Expected 200 OK from a GET to "
-                    + httpRequest.getUrl() + " but got another status code instead");
+            log.warn("Expected 200 OK from a GET to " + httpRequest.getUrl()
+                    + " but got another status code instead");
         }
         return null;
+    }
+
+    public String getUrl() {
+        String completeUrl = url + '/' + indexName + '/' + type + '/' + id;
+        if (sourceOnly) {
+            completeUrl += "/_source";
+        }
+        return completeUrl;
+    }
+
+    public String getIndex() {
+        return indexName;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Object getQueryString(String key) {
+        return this.queryStrings.get(key);
     }
 }
