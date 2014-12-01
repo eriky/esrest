@@ -10,6 +10,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.eriky.EsREST;
+import com.eriky.EsRESTException;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 /**
@@ -184,57 +185,49 @@ public class EsRESTTest {
         assertTrue(rValid.createIndexWithSettings(testIndexName, indexSettings));
     }
 
-    /**
-     * <p>
-     * testIndexDocWithId
-     * </p>
-     *
-     */
     @Test
-    public void testIndexDocWithId() {
+    public void testGetDocument() throws EsRESTException {
         rValid.createIndex(testIndexName);
         assertTrue(rValid.index(testIndexName, testType, "1", testDocument));
-        JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
+        JSONObject doc = rValid.getDocument() //
+                .withIndex(testIndexName) //
+                .withType(testType) //
+                .id("1") //
+                .includeSource(false) //
+                .fields("age") //
+                .sourceOnly(false) //
+                .execute(); //
         assertEquals(doc.getString("_id"), "1");
     }
 
     @Test
-    public void testGetDocumentNewStyle() {
+    public void getGetDocumentWithoutType() throws EsRESTException {
         rValid.createIndex(testIndexName);
         assertTrue(rValid.index(testIndexName, testType, "1", testDocument));
-        JSONObject doc = rValid
-                .getDocumentNewStyle(testIndexName, testType, "1")
-                .routing(null).source(false).fields("age").execute();
-        System.out.println(doc.toString(2));
+        JSONObject doc = rValid.getDocument() //
+                .withIndex(testIndexName) //
+                .id("1") //
+                .execute(); //
         assertEquals(doc.getString("_id"), "1");
     }
 
     @Test
-    public void getGetDocumentWithType() {
-        rValid.createIndex(testIndexName);
-        rValid.index(testIndexName, testType, "1", testDocument);
-        JSONObject doc = rValid.getDocument(testIndexName, testType, "1");
-        assertEquals(doc.getString("_id"), "1");
-    }
-
-    @Test
-    public void getGetDocumentWithoutType() {
-        rValid.createIndex(testIndexName);
-        rValid.index(testIndexName, testType, "1", testDocument);
-        JSONObject doc = rValid.getDocument(testIndexName, "1");
-        assertEquals(doc.getString("_id"), "1");
-    }
-
-    @Test
-    public void getGetDocumentFromInvalidServer() {
-        JSONObject doc = rInvalid.getDocument(testIndexName, testType, "1");
+    public void getGetDocumentFromInvalidServer() throws EsRESTException {
+        JSONObject doc = rInvalid.getDocument() //
+                .withIndex(testIndexName) //
+                .withType(testType) //
+                .id("1")
+                .execute(); //
         assertNull(doc);
     }
 
     @Test
-    public void getGetNonExistingDocument() {
-        JSONObject doc = rValid.getDocument(testIndexName, testType,
-                "doesnotexist");
+    public void getGetNonExistingDocument() throws EsRESTException {
+        rValid.createIndex(testIndexName);
+        JSONObject doc = rValid.getDocument() //
+                .withIndex(testIndexName) //
+                .id("1") //
+                .execute(); //
         assertNull(doc);
     }
 
@@ -284,14 +277,19 @@ public class EsRESTTest {
      */
     @Test
     public void testValidBulkIndex() {
+        int bulksize = 50;
+        
         rValid.createIndex(testIndexName);
-        rValid.setBulkSize(20);
+        rValid.setBulkSize(bulksize);
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < bulksize * 20; i++) {
+            if (i % bulksize == 0) {
+                assertEquals(0, rValid.getCurrentBulkSize());
+            }
+            
             assertTrue(rValid.bulkIndex(testIndexName, testType,
                     Integer.toString(i), testDocument));
         }
-        assertEquals(rValid.getCurrentBulkSize(), 0);
     }
 
     @Test
